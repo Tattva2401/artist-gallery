@@ -1,0 +1,88 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  // URLs are completely removed from here in Prisma 7!
+}
+
+model Artwork {
+  id          String         @id @default(uuid())
+  title       String
+  description String
+  imageUrl    String         
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  // Relations
+  variants    PrintVariant[] 
+  orders      OrderItem[]    
+}
+
+model PrintVariant {
+  id        String   @id @default(uuid())
+  artworkId String
+  size      String   // e.g., "8x10", "16x20", "24x36"
+  price     Float    
+  stock     Int      @default(999) 
+  
+  // Relations
+  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+}
+
+model CommissionRequest {
+  id             String           @id @default(uuid())
+  clientName     String
+  clientEmail    String
+  notes          String           
+  canvasSize     String           
+  referenceImage String?          
+  status         CommissionStatus @default(PENDING)
+  createdAt      DateTime         @default(now())
+}
+
+model Order {
+  id                  String            @id @default(uuid())
+  clientEmail         String
+  totalAmount         Float
+  stripeSessionId     String            @unique
+  fulfillmentStatus   FulfillmentStatus @default(PENDING_COA) 
+  createdAt           DateTime          @default(now())
+  
+  // Legal Compliance Logs (Immutable snapshots)
+  agreedToTerms       Boolean           @default(false)
+  agreedToNonCopy     Boolean           @default(false)
+  agreedToNoRemake    Boolean           @default(false)
+  legalAgreedAt       DateTime          @default(now())
+
+  // Relations
+  items               OrderItem[]
+}
+
+model OrderItem {
+  id        String  @id @default(uuid())
+  orderId   String
+  artworkId String
+  size      String  
+  price     Float   
+  
+  // Relations
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  artwork   Artwork @relation(fields: [artworkId], references: [id])
+}
+
+enum CommissionStatus {
+  PENDING
+  ACCEPTED
+  IN_PROGRESS
+  COMPLETED
+  DECLINED
+}
+
+enum FulfillmentStatus {
+  PENDING_COA      
+  COA_PREPARED     
+  SHIPPED          
+  DELIVERED
+}

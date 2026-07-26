@@ -44,7 +44,7 @@ export default async function ManageArtworks() {
             </tr>
           </thead>
           <tbody className="divide-y divide-stone-800">
-            {artworks.map((art) => (
+            {artworks.map((art: any) => (
               <tr key={art.id} className="hover:bg-stone-800/50 transition-colors">
                 <td className="px-6 py-4 flex items-center gap-4">
                   <div className="relative w-12 h-16 bg-stone-800 rounded-sm overflow-hidden shrink-0">

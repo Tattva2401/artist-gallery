@@ -1,26 +1,36 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
+@layer base {
   :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+    --bg-cream: #FBF9F5;
+    --text-obsidian: #121110;
+    --gold-antique: #C5A059;
+    --gold-light: #E5C98B;
+    --sapphire-peacock: #0B2545;
+    --emerald-crest: #0D5C3A;
+    --ruby-royal: #8B1E2D;
   }
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--bg-cream);
+  color: var(--text-obsidian);
+  font-family: var(--font-inter), sans-serif;
+}
+
+/* Custom regal utility styles */
+.text-gold {
+  color: #C5A059;
+}
+
+.border-gold {
+  border-color: #C5A059;
+}
+
+.bg-gold {
+  background-color: #C5A059;
+}
+
+.bg-sapphire {
+  background-color: #0B2545;
 }

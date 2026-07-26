@@ -4,85 +4,93 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  // URLs are completely removed from here in Prisma 7!
+  // URL is managed via environment variables
 }
 
 model Artwork {
-  id          String         @id @default(uuid())
+  id          String   @id @default(uuid())
   title       String
   description String
-  imageUrl    String         
-  createdAt   DateTime       @default(now())
-  updatedAt   DateTime       @updatedAt
-  
+  imageUrl    String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
   // Relations
-  variants    PrintVariant[] 
-  orders      OrderItem[]    
+  variants   PrintVariant[]
+  orderItems OrderItem[]
 }
 
 model PrintVariant {
-  id        String   @id @default(uuid())
+  id        String @id @default(uuid())
   artworkId String
-  size      String   // e.g., "8x10", "16x20", "24x36"
-  price     Float    
-  stock     Int      @default(999) 
-  
+  size      String // e.g., "8x10", "16x20", "24x36"
+  price     Float
+  stock     Int    @default(999)
+
   // Relations
-  artwork   Artwork  @relation(fields: [artworkId], references: [id], onDelete: Cascade)
+  artwork Artwork @relation(fields: [artworkId], references: [id], onDelete: Cascade)
 }
 
-model CommissionRequest {
-  id             String           @id @default(uuid())
-  clientName     String
-  clientEmail    String
-  notes          String           
-  canvasSize     String           
-  referenceImage String?          
-  status         CommissionStatus @default(PENDING)
-  createdAt      DateTime         @default(now())
+// The active Commission model wired to your UI
+model Commission {
+  id            String   @id @default(cuid())
+  name          String
+  email         String
+  details       String
+  requestedSize String?
+  status        String   @default("PENDING") // PENDING, ACCEPTED, DECLINED
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
 }
 
 model Order {
-  id                  String            @id @default(uuid())
-  clientEmail         String
-  totalAmount         Float
-  stripeSessionId     String            @unique
-  fulfillmentStatus   FulfillmentStatus @default(PENDING_COA) 
-  createdAt           DateTime          @default(now())
-  
+  id String @id @default(uuid())
+
+  // Customer Details for UPI/Domestic Flow
+  customerName    String
+  customerEmail   String
+  customerPhone   String?
+  shippingAddress String
+  totalAmount     Float
+
+  // Zero-Fee Payment & Fulfillment Tracking
+  paymentStatus     PaymentStatus     @default(PENDING_PAYMENT)
+  fulfillmentStatus FulfillmentStatus @default(PENDING_COA)
+
   // Legal Compliance Logs (Immutable snapshots)
-  agreedToTerms       Boolean           @default(false)
-  agreedToNonCopy     Boolean           @default(false)
-  agreedToNoRemake    Boolean           @default(false)
-  legalAgreedAt       DateTime          @default(now())
+  agreedToTerms    Boolean  @default(false)
+  agreedToNonCopy  Boolean  @default(false)
+  agreedToNoRemake Boolean  @default(false)
+  legalAgreedAt    DateTime @default(now())
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   // Relations
-  items               OrderItem[]
+  items OrderItem[]
 }
 
 model OrderItem {
-  id        String  @id @default(uuid())
+  id        String @id @default(uuid())
   orderId   String
   artworkId String
-  size      String  
-  price     Float   
-  
+  size      String
+  price     Float
+
   // Relations
-  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
-  artwork   Artwork @relation(fields: [artworkId], references: [id])
+  order   Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  artwork Artwork @relation(fields: [artworkId], references: [id])
 }
 
-enum CommissionStatus {
-  PENDING
-  ACCEPTED
-  IN_PROGRESS
-  COMPLETED
-  DECLINED
+enum PaymentStatus {
+  PENDING_PAYMENT
+  PAID
+  CANCELLED
 }
 
 enum FulfillmentStatus {
-  PENDING_COA      
-  COA_PREPARED     
-  SHIPPED          
+  PENDING_COA
+  COA_PREPARED
+  SHIPPED
   DELIVERED
 }

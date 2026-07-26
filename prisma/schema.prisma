@@ -94,3 +94,18 @@ enum FulfillmentStatus {
   SHIPPED
   DELIVERED
 }
+
+model Address {
+  id          String   @id @default(cuid())
+  userId      String   // This will store the Supabase Auth user ID
+  fullName    String
+  street      String
+  city        String
+  state       String
+  postalCode  String
+  country     String   @default("India")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([userId])
+}

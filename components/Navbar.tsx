@@ -1,13 +1,46 @@
+"use client";
+
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import { createBrowserClient } from "@supabase/ssr";
+import { useRouter } from "next/navigation";
 
 export default function Navbar() {
+  const [user, setUser] = useState<any>(null);
+  const router = useRouter();
+
+  // Initialize Supabase client
+  const supabase = createBrowserClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  );
+
+  useEffect(() => {
+    // Check active session on mount
+    const checkUser = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user || null);
+    };
+    checkUser();
+
+    // Listen for login/logout events
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
+
+  const handleSignOut = async () => {
+    await supabase.auth.signOut();
+    router.push("/");
+    router.refresh();
+  };
+
   return (
-    <>
-      {/* Removed 'sticky top-0 z-50 backdrop-blur-md' to allow natural scrolling */}
-      <header className="bg-[#FBF9F5] border-b border-[#C5A059]/30">
-        {/* Top Section: Centered Royal Brand Showcase */}
-        <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+    <header className="bg-[#FBF9F5] border-b border-[#C5A059]/30">
+      <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
         {/* Left Spacer */}
         <div className="hidden md:flex items-center gap-4 w-1/3 text-xs uppercase tracking-[0.2em] text-[#C5A059] font-medium">
           <span>Est. Studio Collection</span>
@@ -33,32 +66,50 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Right Action Button */}
-        <div className="flex items-center justify-end w-full md:w-1/3 mt-3 md:mt-0">
-          <Link 
-            href="/commissions"
-            className="bg-[#0B2545] text-white px-6 py-3 text-xs uppercase tracking-widest font-bold rounded-sm hover:bg-[#C5A059] transition-colors duration-300 shadow-sm"
-          >
-            Request Art
-          </Link>
+        {/* Right Section: Dynamic Authentication */}
+        <div className="flex items-center justify-end w-full md:w-1/3 mt-3 md:mt-0 gap-5">
+          {user ? (
+            <>
+              <Link 
+                href="/account"
+                className="text-xs uppercase tracking-widest font-bold text-[#121110] hover:text-[#C5A059] transition-colors duration-300"
+              >
+                My Account
+              </Link>
+              <button 
+                onClick={handleSignOut}
+                className="bg-[#0B2545] text-white px-6 py-3 text-xs uppercase tracking-widest font-bold rounded-sm hover:bg-[#C5A059] transition-colors duration-300 shadow-sm cursor-pointer"
+              >
+                Sign Out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link 
+                href="/login"
+                className="text-xs uppercase tracking-widest font-bold text-[#121110] hover:text-[#C5A059] transition-colors duration-300"
+              >
+                Log In
+              </Link>
+              <Link 
+                href="/signup"
+                className="bg-[#0B2545] text-white px-6 py-3 text-xs uppercase tracking-widest font-bold rounded-sm hover:bg-[#C5A059] transition-colors duration-300 shadow-sm"
+              >
+                Sign Up
+              </Link>
+            </>
+          )}
         </div>
       </div>
 
       {/* Bottom Ribbon: Clean Navigation Links */}
       <div className="border-t border-[#C5A059]/15 bg-white/40 py-3">
         <nav className="flex items-center justify-center gap-10 text-xs uppercase tracking-[0.2em] font-bold text-[#121110]/80">
-          <Link href="/" className="hover:text-[#C5A059] transition-colors duration-300">
-            Gallery
-          </Link>
-          <Link href="/about" className="hover:text-[#C5A059] transition-colors duration-300">
-            About Artist
-          </Link>
-          <Link href="/commissions" className="hover:text-[#C5A059] transition-colors duration-300">
-            Commissions
-          </Link>
+          <Link href="/" className="hover:text-[#C5A059] transition-colors duration-300">Gallery</Link>
+          <Link href="/about" className="hover:text-[#C5A059] transition-colors duration-300">About Artist</Link>
+          <Link href="/commissions" className="hover:text-[#C5A059] transition-colors duration-300">Commissions</Link>
         </nav>
       </div>
     </header>
-    </>
   );
 }

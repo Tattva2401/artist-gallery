@@ -2,8 +2,15 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   typescript: {
-    // Ignores type checking during production build so you can deploy instantly
-    ignoreBuildErrors: true,
+    ignoreBuildErrors: true, 
+  },
+  images: {
+    remotePatterns: [
+      {
+        protocol: 'https',
+        hostname: 'rzmtjcbzknshnycreedd.supabase.co',
+      },
+    ],
   },
 };
 

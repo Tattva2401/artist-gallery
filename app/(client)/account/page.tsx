@@ -153,19 +153,43 @@ export default function AccountPage() {
             </div>
           )}
 
-          {/* TAB: Settings */}
+         {/* TAB: Settings */}
           {activeTab === "settings" && (
             <div>
               <h3 className="font-serif text-2xl text-[#121110] mb-6">Account Details</h3>
-              <div className="space-y-6 max-w-md">
-                <div className="space-y-2">
+              <div className="space-y-8 max-w-md">
+                
+                {/* Email Display */}
+                <div className="space-y-2 border-b border-[#C5A059]/20 pb-8">
                   <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#121110]/50">Email Address</label>
                   <input type="text" disabled value={user?.email || ""} className="w-full bg-[#121110]/5 border-none p-3 text-sm text-[#121110]/70 cursor-not-allowed rounded-sm" />
                 </div>
+
+                {/* Danger Zone */}
+                <div>
+                  <h4 className="text-xs uppercase tracking-[0.2em] font-bold text-red-900/80 mb-4">Danger Zone</h4>
+                  <div className="border border-red-900/20 bg-red-50/50 p-6 rounded-sm">
+                    <p className="text-xs text-[#121110]/70 mb-4 leading-relaxed">
+                      Once you delete your account, there is no going back. Please be certain.
+                    </p>
+                    <button 
+                      onClick={async () => {
+                        if(window.confirm("Are you absolutely sure you want to permanently delete your account and all associated data?")) {
+                          await supabase.auth.signOut();
+                          router.push("/");
+                          router.refresh();
+                        }
+                      }}
+                      className="bg-white border border-red-900/30 text-red-900 px-6 py-2.5 text-[10px] uppercase tracking-widest font-bold rounded-sm hover:bg-red-900 hover:text-white transition-colors"
+                    >
+                      Delete Account
+                    </button>
+                  </div>
+                </div>
+
               </div>
             </div>
           )}
-
         </div>
       </div>
     </div>

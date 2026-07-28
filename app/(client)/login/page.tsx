@@ -1,16 +1,16 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { createBrowserClient } from "@supabase/ssr";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
-type Tab = "orders" | "addresses" | "settings";
-
-export default function AccountPage() {
-  const [user, setUser] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState<Tab>("orders");
+export default function LoginPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const router = useRouter();
 
   const supabase = createBrowserClient(
@@ -19,21 +19,38 @@ export default function AccountPage() {
   );
 
   useEffect(() => {
-    const getUser = async () => {
+    const checkSession = async () => {
       const { data: { session } } = await supabase.auth.getSession();
-      
-      if (!session) {
-        router.push("/login"); // Kick unauthorized users back to login
+      if (session) {
+        router.push("/account");
       } else {
-        setUser(session.user);
+        setCheckingSession(false);
       }
-      setLoading(false);
     };
+    checkSession();
+  }, [router, supabase]);
 
-    getUser();
-  }, [router, supabase.auth]);
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
 
-  if (loading) {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      setError(error.message);
+      setLoading(false);
+    } else {
+      router.push("/account");
+      router.refresh();
+    }
+  };
+
+  // Prevent UI flash while checking session
+  if (checkingSession) {
     return (
       <div className="min-h-[60vh] flex justify-center items-center">
         <div className="w-8 h-8 border-2 border-[#C5A059]/30 border-t-[#C5A059] rounded-full animate-spin"></div>
@@ -42,93 +59,57 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-6 py-16 md:py-24">
-      {/* Header */}
-      <div className="mb-12 border-b border-[#C5A059]/20 pb-6">
-        <h1 className="font-serif text-4xl text-[#121110] mb-2">My Collection Room</h1>
-        <p className="text-sm font-light text-[#121110]/60 uppercase tracking-widest">
-          {user?.email}
-        </p>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
-        {/* Navigation Sidebar */}
-        <div className="flex flex-col gap-6 md:col-span-1">
-          <button 
-            onClick={() => setActiveTab("orders")}
-            className={`text-left text-xs uppercase tracking-[0.2em] font-bold transition-colors ${activeTab === "orders" ? "text-[#C5A059]" : "text-[#121110]/60 hover:text-[#0B2545]"}`}
-          >
-            Order History
-          </button>
-          <button 
-            onClick={() => setActiveTab("addresses")}
-            className={`text-left text-xs uppercase tracking-[0.2em] font-bold transition-colors ${activeTab === "addresses" ? "text-[#C5A059]" : "text-[#121110]/60 hover:text-[#0B2545]"}`}
-          >
-            Saved Addresses
-          </button>
-          <button 
-            onClick={() => setActiveTab("settings")}
-            className={`text-left text-xs uppercase tracking-[0.2em] font-bold transition-colors ${activeTab === "settings" ? "text-[#C5A059]" : "text-[#121110]/60 hover:text-[#0B2545]"}`}
-          >
-            Account Settings
-          </button>
+    <div className="min-h-[70vh] flex items-center justify-center px-6 py-16">
+      <div className="w-full max-w-md bg-white border border-[#C5A059]/20 shadow-sm p-8 md:p-12">
+        <div className="text-center mb-8">
+          <h1 className="font-serif text-3xl text-[#121110] mb-2">Welcome Back</h1>
+          <p className="text-xs uppercase tracking-widest text-[#121110]/60">Access your collection</p>
         </div>
 
-        {/* Main Content Area */}
-        <div className="md:col-span-3 min-h-[400px] bg-white border border-[#C5A059]/15 shadow-sm p-8 lg:p-12">
+        <form onSubmit={handleLogin} className="space-y-5">
+          {error && (
+            <div className="bg-red-50 border border-red-200 text-red-900/80 p-3 text-xs text-center rounded-sm">
+              {error}
+            </div>
+          )}
           
-          {/* TAB: Orders */}
-          {activeTab === "orders" && (
-            <div className="flex flex-col items-center justify-center text-center h-full pt-10">
-              <span className="text-5xl mb-6 text-[#C5A059]/30">⚱️</span>
-              <h3 className="font-serif text-2xl text-[#121110] mb-3">No Recent Orders</h3>
-              <p className="text-sm font-light text-[#121110]/60 mb-8 max-w-sm">
-                You haven't acquired any original pieces or fine art prints from the studio yet.
-              </p>
-              <Link 
-                href="/"
-                className="bg-[#0B2545] text-white px-8 py-3.5 text-[10px] uppercase tracking-[0.2em] font-bold rounded-sm hover:bg-[#C5A059] transition-colors duration-300 shadow-sm"
-              >
-                Explore Gallery
-              </Link>
-            </div>
-          )}
+          <div>
+            <input 
+              type="email" 
+              required 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email Address" 
+              className="w-full p-3 text-sm border-b border-[#C5A059]/20 bg-transparent focus:outline-none focus:border-[#0B2545] transition-colors" 
+            />
+          </div>
+          <div>
+            <input 
+              type="password" 
+              required 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Password" 
+              className="w-full p-3 text-sm border-b border-[#C5A059]/20 bg-transparent focus:outline-none focus:border-[#0B2545] transition-colors" 
+            />
+          </div>
 
-          {/* TAB: Addresses */}
-          {activeTab === "addresses" && (
-            <div>
-              <h3 className="font-serif text-2xl text-[#121110] mb-6">Shipping Addresses</h3>
-              <div className="border border-dashed border-[#C5A059]/40 bg-[#FBF9F5] p-8 text-center rounded-sm">
-                <p className="text-sm font-light text-[#121110]/60 mb-4">No addresses saved.</p>
-                <button className="text-xs uppercase tracking-[0.15em] font-bold text-[#C5A059] hover:text-[#0B2545] transition-colors">
-                  + Add New Address
-                </button>
-              </div>
-            </div>
-          )}
+          <button 
+            type="submit" 
+            disabled={loading}
+            className="w-full bg-[#0B2545] text-white px-6 py-4 text-xs uppercase tracking-widest font-bold rounded-sm hover:bg-[#C5A059] transition-colors duration-300 shadow-sm mt-4 disabled:opacity-70"
+          >
+            {loading ? "Authenticating..." : "Log In"}
+          </button>
+        </form>
 
-          {/* TAB: Settings */}
-          {activeTab === "settings" && (
-            <div>
-              <h3 className="font-serif text-2xl text-[#121110] mb-6">Account Details</h3>
-              <div className="space-y-6 max-w-md">
-                <div className="space-y-2">
-                  <label className="text-[10px] uppercase tracking-[0.2em] font-bold text-[#121110]/50">Email Address</label>
-                  <input 
-                    type="text" 
-                    disabled 
-                    value={user?.email || ""} 
-                    className="w-full bg-[#121110]/5 border-none p-3 text-sm text-[#121110]/70 cursor-not-allowed rounded-sm"
-                  />
-                  <p className="text-[10px] text-[#121110]/40">Email cannot be changed directly.</p>
-                </div>
-                <button className="text-xs uppercase tracking-[0.15em] font-bold text-red-900/70 hover:text-red-900 transition-colors pt-4">
-                  Reset Password
-                </button>
-              </div>
-            </div>
-          )}
-
+        <div className="mt-8 text-center border-t border-[#C5A059]/15 pt-6">
+          <p className="text-[10px] uppercase tracking-widest text-[#121110]/60">
+            Don't have an account?{" "}
+            <Link href="/signup" className="text-[#C5A059] font-bold hover:text-[#0B2545] transition-colors">
+              Sign Up
+            </Link>
+          </p>
         </div>
       </div>
     </div>

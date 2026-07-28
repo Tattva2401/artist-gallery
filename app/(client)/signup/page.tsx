@@ -1,15 +1,16 @@
 "use client";
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { createBrowserClient } from '@supabase/ssr';
-import Link from 'next/link';
+import { useState, useEffect } from "react";
+import { createBrowserClient } from "@supabase/ssr";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
-export default function SignupPage() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+export default function SignUpPage() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [checkingSession, setCheckingSession] = useState(true);
   const router = useRouter();
 
   const supabase = createBrowserClient(
@@ -17,9 +18,21 @@ export default function SignupPage() {
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
   );
 
-  const handleSignup = async (e: React.FormEvent) => {
+  useEffect(() => {
+    const checkSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        router.push("/account");
+      } else {
+        setCheckingSession(false);
+      }
+    };
+    checkSession();
+  }, [router, supabase]);
+
+  const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
+    setLoading(true);
     setError(null);
 
     const { error } = await supabase.auth.signUp({
@@ -29,72 +42,75 @@ export default function SignupPage() {
 
     if (error) {
       setError(error.message);
-      setIsLoading(false);
+      setLoading(false);
     } else {
-      // On success, send them back to the gallery
-      router.push('/');
-      router.refresh(); 
+      router.push("/account");
+      router.refresh();
     }
   };
 
+  if (checkingSession) {
+    return (
+      <div className="min-h-[60vh] flex justify-center items-center">
+        <div className="w-8 h-8 border-2 border-[#C5A059]/30 border-t-[#C5A059] rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-zinc-50 flex flex-col justify-center items-center p-6 pb-32">
-      <div className="w-full max-w-md bg-white border border-zinc-200 p-8 md:p-12 rounded-sm shadow-sm">
-        <div className="text-center mb-10">
-          <h1 className="text-3xl font-serif text-zinc-900 tracking-tight mb-2">Create Account</h1>
-          <p className="text-sm text-zinc-500 font-light">Join to track orders and request commissions.</p>
+    <div className="min-h-[70vh] flex items-center justify-center px-6 py-16">
+      <div className="w-full max-w-md bg-white border border-[#C5A059]/20 shadow-sm p-8 md:p-12">
+        <div className="text-center mb-8">
+          <h1 className="font-serif text-3xl text-[#121110] mb-2">Become a Collector</h1>
+          <p className="text-xs uppercase tracking-widest text-[#121110]/60">Create your studio account</p>
         </div>
 
-        <form onSubmit={handleSignup} className="space-y-6">
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Email Address</label>
-            <input 
-              type="email" 
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full border-b border-zinc-300 py-2 bg-transparent text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors placeholder:text-zinc-400" 
-              placeholder="you@example.com" 
-            />
-          </div>
-
-          <div className="space-y-2">
-            <label className="text-xs font-bold uppercase tracking-widest text-zinc-500">Password</label>
-            <input 
-              type="password" 
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full border-b border-zinc-300 py-2 bg-transparent text-zinc-900 focus:outline-none focus:border-zinc-900 transition-colors placeholder:text-zinc-400" 
-              placeholder="••••••••" 
-              minLength={6}
-            />
-          </div>
-
+        <form onSubmit={handleSignUp} className="space-y-5">
           {error && (
-            <div className="text-red-700 text-sm bg-red-50 p-3 rounded-sm border border-red-200 text-center">
+            <div className="bg-red-50 border border-red-200 text-red-900/80 p-3 text-xs text-center rounded-sm">
               {error}
             </div>
           )}
+          
+          <div>
+            <input 
+              type="email" 
+              required 
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Email Address" 
+              className="w-full p-3 text-sm border-b border-[#C5A059]/20 bg-transparent focus:outline-none focus:border-[#0B2545] transition-colors" 
+            />
+          </div>
+          <div>
+            <input 
+              type="password" 
+              required 
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Create Password (Min. 6 chars)" 
+              className="w-full p-3 text-sm border-b border-[#C5A059]/20 bg-transparent focus:outline-none focus:border-[#0B2545] transition-colors" 
+            />
+          </div>
 
           <button 
             type="submit" 
-            disabled={isLoading}
-            className="w-full bg-zinc-900 text-zinc-50 py-4 mt-4 uppercase tracking-widest text-sm font-semibold hover:bg-zinc-800 transition-colors disabled:opacity-50 rounded-sm"
+            disabled={loading}
+            className="w-full bg-[#0B2545] text-white px-6 py-4 text-xs uppercase tracking-widest font-bold rounded-sm hover:bg-[#C5A059] transition-colors duration-300 shadow-sm mt-4 disabled:opacity-70"
           >
-            {isLoading ? 'Creating Account...' : 'Sign Up'}
+            {loading ? "Creating Account..." : "Sign Up"}
           </button>
         </form>
 
-        <div className="mt-8 text-center">
-          <p className="text-sm text-zinc-500">
-            Already have an account?{' '}
-            <Link href="/login" className="text-zinc-900 font-semibold hover:underline">
-              Log in here.
+        <div className="mt-8 text-center border-t border-[#C5A059]/15 pt-6">
+          <p className="text-[10px] uppercase tracking-widest text-[#121110]/60">
+            Already have an account?{" "}
+            <Link href="/login" className="text-[#C5A059] font-bold hover:text-[#0B2545] transition-colors">
+              Log In
             </Link>
           </p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }

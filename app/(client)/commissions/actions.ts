@@ -6,15 +6,15 @@ import { revalidatePath } from "next/cache";
 export async function submitCommissionRequest(formData: FormData) {
   const name = formData.get("name") as string;
   const email = formData.get("email") as string;
-  const details = formData.get("details") as string;
-  const requestedSize = formData.get("requestedSize") as string;
+  const details = formData.get("concept") as string; 
+  const requestedSize = formData.get("size") as string; 
 
   if (!name || !email || !details) {
     throw new Error("Missing required fields");
   }
 
-  // Save the commission request to your database
-  await prisma.commissionRequest.create({
+  // Pointing exactly to your existing 'Commission' model!
+  await prisma.commission.create({
     data: {
       name,
       email,

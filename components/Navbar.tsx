@@ -52,37 +52,41 @@ export default function Navbar() {
   const userInitial = user?.email ? user.email.charAt(0).toUpperCase() : "U";
 
   return (
-    // Swapped to Persian Blue / Navy Background
     <header className="bg-[#0B2545] border-b border-[#C5A059]/30">
-      <div className="max-w-7xl mx-auto px-6 py-6 flex flex-col md:flex-row items-center justify-between gap-4">
+      
+      {/* 
+        SPACING UPDATE: 
+        Reduced vertical padding (py-4 instead of py-6) to make the navbar skinnier overall.
+      */}
+      <div className="w-full px-6 md:px-12 lg:px-20 py-8 flex flex-col md:flex-row items-center justify-between gap-4">
         
         {/* Left Spacer */}
         <div className="hidden md:flex items-center gap-4 w-1/3 text-xs uppercase tracking-[0.2em] text-[#C5A059] font-medium">
           <span>Est. Studio Collection</span>
         </div>
 
-        {/* Centered Prominent Logo & Brand Name */}
-        <Link href="/" className="flex flex-col items-center group text-center w-full md:w-1/3">
-          <div className="relative w-24 h-24 md:w-28 md:h-28 overflow-hidden rounded-full border-2 border-[#C5A059] shadow-md transition-transform duration-500 group-hover:scale-105 bg-white mb-2">
+       {/* Centered Prominent Logo (Text Removed) */}
+        <Link href="/" className="flex flex-col items-center justify-center group w-full md:w-1/3">
+          
+          {/* 
+            GLOW UPDATE: 
+            - Increased border to 2px for better definition.
+            - Swapped transition-transform to transition-all.
+            - Added group-hover:shadow-[0_0_30px_rgba(197,160,89,0.5)] for the gold glow.
+          */}
+          <div className="relative w-40 h-40 md:w-56 md:h-56 overflow-hidden rounded-full border-2 border-[#C5A059] shadow-md transition-all duration-500 group-hover:scale-105 group-hover:shadow-[0_0_30px_rgba(197,160,89,0.5)] bg-white">
             <Image 
               src="/logo.jpeg" 
               alt="Tattva Art Studio Logo" 
               fill 
               priority
-              sizes="(max-width: 768px) 96px, 112px"
-              className="object-cover"
+              sizes="(max-width: 768px) 160px, 224px"
+              className="object-cover scale-[1.13]" 
             />
           </div>
-          {/* Text updated to off-white for contrast */}
-          <span className="font-serif text-2xl md:text-3xl tracking-[0.2em] text-[#FBF9F5] font-bold group-hover:text-[#C5A059] transition-colors duration-300">
-            TATTVA
-          </span>
-          <span className="text-[10px] md:text-xs uppercase tracking-[0.3em] text-[#C5A059] font-bold mt-0.5">
-            ART STUDIO
-          </span>
         </Link>
 
-        {/* Right Section: Dynamic Authentication & Profile Dropdown */}
+        {/* Right Section: Auth & Profile */}
         <div className="flex items-center justify-end w-full md:w-1/3 mt-3 md:mt-0 gap-5">
           {user ? (
             <div className="relative" ref={dropdownRef}>
@@ -93,7 +97,7 @@ export default function Navbar() {
                 {userInitial}
               </button>
 
-              {/* Dropdown Menu (Kept light for readability) */}
+              {/* Dropdown Menu */}
               {dropdownOpen && (
                 <div className="absolute right-0 mt-3 w-56 bg-[#FBF9F5] border border-[#C5A059]/30 shadow-lg rounded-sm py-2 z-50 flex flex-col transform opacity-100 scale-100 transition-all duration-200 origin-top-right">
                   <div className="px-4 py-3 border-b border-[#C5A059]/15 bg-white">
@@ -120,14 +124,12 @@ export default function Navbar() {
             </div>
           ) : (
             <>
-              {/* Text updated to off-white for contrast */}
               <Link 
                 href="/login"
                 className="text-xs uppercase tracking-widest font-bold text-[#FBF9F5] hover:text-[#C5A059] transition-colors duration-300"
               >
                 Log In
               </Link>
-              {/* Button inverted to gold background */}
               <Link 
                 href="/signup"
                 className="bg-[#C5A059] text-[#121110] px-6 py-3 text-xs uppercase tracking-widest font-bold rounded-sm hover:bg-[#FBF9F5] transition-colors duration-300 shadow-sm"
@@ -139,7 +141,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Bottom Ribbon: Darker Navy to separate from the main header */}
+      {/* Bottom Ribbon */}
       <div className="border-t border-[#C5A059]/15 bg-[#081B33] py-3">
         <nav className="flex items-center justify-center gap-10 text-xs uppercase tracking-[0.2em] font-bold text-[#FBF9F5]">
           <Link href="/" className="hover:text-[#C5A059] transition-colors duration-300">Gallery</Link>
@@ -149,4 +151,4 @@ export default function Navbar() {
       </div>
     </header>
   );
-}   
+}

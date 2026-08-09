@@ -10,13 +10,20 @@ export default async function HomePage() {
       {/* Hero Section */}
       <section className="text-center max-w-3xl mx-auto mb-20">
         <p className="text-xs uppercase tracking-[0.3em] text-gold-antique font-semibold mb-4">
-          Original Fine Art & Contemporary Paintings
+          demo text
         </p>
-        <h1 className="font-serif text-5xl md:text-6xl text-obsidian tracking-tight mb-6">
+        
+        {/* 
+          FONT UPDATE: 
+          Added 'font-bold' to make it heavier.
+          Changed 'tracking-tight' to 'tracking-wide' for a tiny bit more letter spacing.
+        */}
+        <h1 className="font-['Papyrus',_fantasy,_serif] font-bold text-5xl md:text-6xl text-obsidian tracking-wide mb-6">
           Tattva Art Studio
         </h1>
+        
         <p className="text-obsidian/70 font-light text-lg md:text-xl leading-relaxed">
-          Explore curated original pieces and premium museum-quality prints.
+          demo text
         </p>
       </section>
 

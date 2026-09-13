@@ -13,12 +13,8 @@ export default async function HomePage() {
           demo text
         </p>
         
-        {/* 
-          FONT UPDATE: 
-          Added 'font-bold' to make it heavier.
-          Changed 'tracking-tight' to 'tracking-wide' for a tiny bit more letter spacing.
-        */}
-        <h1 className="font-['Papyrus',_fantasy,_serif] font-bold text-5xl md:text-6xl text-obsidian tracking-wide mb-6">
+        {/* RESPONSIVE H1: text-4xl on mobile to prevent wrapping, text-6xl on desktop */}
+        <h1 className="font-['Papyrus',_fantasy,_serif] font-bold text-4xl md:text-6xl text-obsidian tracking-wide mb-4 md:mb-6 leading-tight">
           Tattva Art Studio
         </h1>
         

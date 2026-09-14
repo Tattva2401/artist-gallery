@@ -2,15 +2,17 @@ import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Link from "next/link";
+import VariantEditor from "@/components/VariantEditor"; // <-- Added import
 
 export default async function EditArtworkPage({ params }: { params: Promise<{ id: string }> }) {
   // 1. Await the params Promise to safely extract the ID
   const resolvedParams = await params;
   const artworkId = resolvedParams.id;
 
-  // 2. Fetch the specific artwork based on the extracted URL ID
+  // 2. Fetch the specific artwork AND its variants
   const artwork = await prisma.artwork.findUnique({
     where: { id: artworkId },
+    include: { variants: true }, // <-- Now fetching the print sizes
   });
 
   // If someone tries to edit an artwork that doesn't exist, kick them back to the inventory
@@ -18,7 +20,7 @@ export default async function EditArtworkPage({ params }: { params: Promise<{ id
     redirect("/admin/artworks");
   }
 
-  // 3. Secure Server Action to handle the update
+  // 3. Secure Server Action to handle the main update
   async function updateArtwork(formData: FormData) {
     "use server";
     
@@ -28,7 +30,7 @@ export default async function EditArtworkPage({ params }: { params: Promise<{ id
     const dimensions = formData.get("dimensions") as string;
     const isAvailable = formData.get("isAvailable") === "on"; 
 
-    // Update the record in the database using the awaited ID (Price removed!)
+    // Update the record in the database using the awaited ID
     await prisma.artwork.update({
       where: { id: artworkId },
       data: {
@@ -136,6 +138,10 @@ export default async function EditArtworkPage({ params }: { params: Promise<{ id
           </button>
         </div>
       </form>
+
+      {/* <-- New Variant Editor Mounted Here --> */}
+      <VariantEditor artworkId={artwork.id} variants={artwork.variants} />
+
     </div>
   );
 }

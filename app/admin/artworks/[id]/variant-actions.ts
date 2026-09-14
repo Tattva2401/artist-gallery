@@ -1,6 +1,7 @@
 "use server";
 
-import { prisma } from "@/lib/db"; // Adjust this import based on your Prisma setup
+// FIX: Removed the curly braces around prisma to match your default export
+import prisma from "@/lib/db"; 
 import { revalidatePath } from "next/cache";
 
 export async function addVariant(artworkId: string, formData: FormData) {

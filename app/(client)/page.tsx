@@ -12,12 +12,12 @@ export default async function HomePage() {
         <p className="text-xs uppercase tracking-[0.3em] text-gold-antique font-semibold mb-4">
           Contemporary Originals & Archival Prints
         </p>
-        
+
         {/* RESPONSIVE H1: text-4xl on mobile to prevent wrapping, text-6xl on desktop */}
         <h1 className="font-['Papyrus',_fantasy,_serif] font-bold text-4xl md:text-6xl text-obsidian tracking-wide mb-4 md:mb-6 leading-tight">
           Tattva Art Studio
         </h1>
-        
+
         <p className="text-obsidian/70 font-light text-lg md:text-xl leading-relaxed">
           Original contemporary artworks and limited-edition prints by Kavita Rajput. Handcrafted with rich textures, evocative palettes, and timeless vision.
         </p>

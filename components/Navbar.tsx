@@ -5,9 +5,10 @@ import Image from "next/image";
 import { useEffect, useState, useRef } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
+import type { User, AuthChangeEvent, Session } from "@supabase/supabase-js";
 
 export default function Navbar() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
@@ -22,7 +23,7 @@ export default function Navbar() {
     };
     checkUser();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: any, session: any) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event: AuthChangeEvent, session: Session | null) => {
       setUser(session?.user || null);
     });
 

@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import { getSupabaseBrowserClient } from '@/lib/supabase-browser';
 
 export default function AdminLogin() {
@@ -77,11 +78,17 @@ export default function AdminLogin() {
           <button 
             type="submit" 
             disabled={isLoading}
-            className="w-full bg-white text-stone-950 py-4 mt-4 uppercase tracking-widest text-sm font-semibold hover:bg-stone-200 transition-colors disabled:opacity-50"
+            className="w-full bg-white text-stone-950 py-4 mt-4 uppercase tracking-widest text-sm font-semibold hover:bg-stone-200 transition-colors disabled:opacity-50 cursor-pointer"
           >
             {isLoading ? 'Authenticating...' : 'Enter Workspace'}
           </button>
         </form>
+
+        <div className="mt-8 text-center border-t border-stone-800 pt-6">
+          <Link href="/" className="text-xs uppercase tracking-widest text-stone-500 hover:text-white transition-colors">
+            ← Back to Live Site
+          </Link>
+        </div>
       </div>
     </div>
   );

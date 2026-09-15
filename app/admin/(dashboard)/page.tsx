@@ -7,6 +7,7 @@ export default async function AdminDashboard() {
   const commissionsCount = await prisma.commission.count({
     where: { status: 'PENDING' }
   }).catch(() => 0);
+  const ordersCount = await prisma.order.count().catch(() => 0);
 
   return (
     <div className="max-w-4xl">
@@ -27,7 +28,7 @@ export default async function AdminDashboard() {
         </div>
         <div className="bg-stone-900 border border-stone-800 p-6 rounded-sm">
           <h3 className="text-xs font-bold uppercase tracking-widest text-stone-500 mb-2">Total Orders</h3>
-          <p className="text-4xl text-white font-serif">0</p>
+          <p className="text-4xl text-white font-serif">{ordersCount}</p>
         </div>
       </div>
 

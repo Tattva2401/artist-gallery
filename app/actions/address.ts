@@ -36,3 +36,22 @@ export async function getUserAddresses(userId: string) {
     return [];
   }
 }
+
+export async function getUserOrders(email: string) {
+  try {
+    return await prisma.order.findMany({
+      where: { customerEmail: email },
+      include: {
+        items: {
+          include: {
+            artwork: true,
+          },
+        },
+      },
+      orderBy: { createdAt: "desc" },
+    });
+  } catch (error) {
+    console.error("Failed to fetch user orders:", error);
+    return [];
+  }
+}

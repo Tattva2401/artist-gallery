@@ -1,7 +1,7 @@
 "use client";
 
 import { useTransition, useRef } from "react";
-import { addVariant, deleteVariant } from "@/app/admin/artworks/[id]/variant-actions";
+import { addVariant, deleteVariant } from "@/app/admin/(dashboard)/artworks/[id]/variant-actions";
 
 type Variant = {
   id: string;
@@ -41,7 +41,7 @@ export default function VariantEditor({ artworkId, variants }: { artworkId: stri
         {variants.map((v) => (
           <div key={v.id} className="flex justify-between items-center bg-[#121110] border border-[#C5A059]/20 p-4 rounded-sm">
             <span className="text-[#FBF9F5] tracking-wide">
-              {v.size} <span className="text-[#C5A059] ml-2">${v.price}</span>
+              {v.size} <span className="text-[#C5A059] ml-2">₹{v.price.toLocaleString('en-IN')}</span>
             </span>
             
             <button 
@@ -68,7 +68,7 @@ export default function VariantEditor({ artworkId, variants }: { artworkId: stri
         <input 
           type="number" 
           name="price" 
-          placeholder="Price ($)" 
+          placeholder="Price (₹)" 
           required 
           min="0"
           step="0.01"

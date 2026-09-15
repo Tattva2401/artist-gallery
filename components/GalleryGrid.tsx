@@ -1,13 +1,31 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { useInView } from "react-intersection-observer";
 import Image from "next/image";
 import Link from "next/link";
 import { fetchArtworks } from "@/app/actions/gallery";
 
-export default function GalleryGrid({ initialArtworks }: { initialArtworks: any[] }) {
-  const [artworks, setArtworks] = useState(initialArtworks);
+type Variant = {
+  id: string;
+  size: string;
+  price: number;
+  stock?: number;
+};
+
+type Artwork = {
+  id: string;
+  title: string;
+  description: string | null;
+  imageUrl: string;
+  dimensions?: string | null;
+  category?: string | null;
+  isAvailable?: boolean;
+  variants: Variant[];
+};
+
+export default function GalleryGrid({ initialArtworks }: { initialArtworks: Artwork[] }) {
+  const [artworks, setArtworks] = useState<Artwork[]>(initialArtworks);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(initialArtworks.length === 6);
   
@@ -16,25 +34,29 @@ export default function GalleryGrid({ initialArtworks }: { initialArtworks: any[
   
   const { ref, inView } = useInView();
 
-  const loadMoreArtworks = useCallback(async () => {
-    const nextPage = page + 1;
-    const newArtworks = await fetchArtworks(nextPage, 6);
-    
-    if (newArtworks.length > 0) {
-      setArtworks((prev) => [...prev, ...newArtworks]);
-      setPage(nextPage);
-    }
-    
-    if (newArtworks.length < 6) {
-      setHasMore(false);
-    }
-  }, [page]);
-
   useEffect(() => {
-    if (inView && hasMore) {
-      loadMoreArtworks();
-    }
-  }, [inView, hasMore, loadMoreArtworks]);
+    if (!inView || !hasMore) return;
+
+    let cancelled = false;
+    const nextPage = page + 1;
+
+    fetchArtworks(nextPage, 6).then((newArtworks) => {
+      if (cancelled) return;
+      if (newArtworks.length > 0) {
+        setArtworks((prev) => [...prev, ...newArtworks]);
+        setPage(nextPage);
+      }
+      if (newArtworks.length < 6) {
+        setHasMore(false);
+      }
+    }).catch((err) => {
+      console.error("Failed to load more artworks:", err);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [inView, hasMore, page]);
 
   // Lock scrolling when Lightbox is open
   useEffect(() => {
@@ -56,7 +78,7 @@ export default function GalleryGrid({ initialArtworks }: { initialArtworks: any[
         <section className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
           {artworks.map((art) => {
             const minPrice = art.variants?.length > 0 
-              ? Math.min(...art.variants.map((v: any) => v.price))
+              ? Math.min(...art.variants.map((v) => v.price))
               : 0;
 
             return (

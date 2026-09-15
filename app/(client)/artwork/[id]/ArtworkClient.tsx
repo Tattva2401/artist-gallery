@@ -5,8 +5,26 @@ import Image from "next/image";
 import Link from "next/link";
 import { processCheckout } from "@/app/(client)/checkout/actions";
 
-export default function ArtworkClient({ artwork }: { artwork: any }) {
-  const [selectedVariant, setSelectedVariant] = useState(artwork?.variants?.[0] || null);
+type Variant = {
+  id: string;
+  size: string;
+  price: number;
+  stock?: number;
+};
+
+type Artwork = {
+  id: string;
+  title: string;
+  description: string | null;
+  imageUrl: string;
+  dimensions?: string | null;
+  category?: string | null;
+  isAvailable?: boolean;
+  variants: Variant[];
+};
+
+export default function ArtworkClient({ artwork }: { artwork: Artwork }) {
+  const [selectedVariant, setSelectedVariant] = useState<Variant | null>(artwork?.variants?.[0] || null);
   const [agreedTerms, setAgreedTerms] = useState(false);
   const [agreedNoCopy, setAgreedNoCopy] = useState(false);
   const [showLightbox, setShowLightbox] = useState(false);
@@ -51,9 +69,10 @@ export default function ArtworkClient({ artwork }: { artwork: any }) {
           amount: res.amount!,
         });
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error("Checkout submission failed:", err);
-      setCheckoutError("Failed to connect to checkout service. Please try again.");
+      const msg = err instanceof Error ? err.message : "Failed to connect to checkout service. Please try again.";
+      setCheckoutError(msg);
     } finally {
       setIsProcessing(false);
     }
@@ -117,7 +136,7 @@ export default function ArtworkClient({ artwork }: { artwork: any }) {
               {artwork.title}
             </h1>
             <p className="text-[#121110]/70 font-light leading-relaxed mb-10 pb-10 border-b border-[#C5A059]/20">
-              {artwork.description}
+              {artwork.description || "An evocative original artwork handcrafted by Kavita Rajput. Created with fine pigments, rich texture, and timeless vision."}
             </p>
 
             {/* Size Selector */}
@@ -127,11 +146,11 @@ export default function ArtworkClient({ artwork }: { artwork: any }) {
               </h3>
               {artwork?.variants && artwork.variants.length > 0 ? (
                 <div className="flex flex-wrap gap-4">
-                  {artwork.variants.map((variant: any) => (
+                  {artwork.variants.map((variant) => (
                     <button
                       key={variant.id}
                       onClick={() => setSelectedVariant(variant)}
-                      className={`px-6 py-3 text-xs uppercase tracking-widest font-semibold rounded-sm transition-all duration-300 border ${
+                      className={`px-6 py-3 text-xs uppercase tracking-widest font-semibold rounded-sm transition-all duration-300 border cursor-pointer ${
                         selectedVariant?.id === variant.id
                           ? "bg-[#0B2545] text-white border-[#0B2545] shadow-md"
                           : "bg-white text-[#121110] border-[#C5A059]/30 hover:border-[#C5A059]"
@@ -264,6 +283,7 @@ export default function ArtworkClient({ artwork }: { artwork: any }) {
                 </p>
                 <div className="p-4 bg-white border border-[#C5A059]/30 rounded-sm inline-block shadow-sm">
                   {/* Dynamic QR Code from UPI deep-link */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img 
                     src={orderResult.qrCode} 
                     alt="Scan UPI QR Code" 

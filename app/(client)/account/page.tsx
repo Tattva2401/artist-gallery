@@ -4,17 +4,52 @@ import { useEffect, useState } from "react";
 import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
-import { saveAddress, getUserAddresses } from "@/app/actions/address";
+import Image from "next/image";
+import type { User } from "@supabase/supabase-js";
+import { saveAddress, getUserAddresses, getUserOrders } from "@/app/actions/address";
 
 type Tab = "orders" | "addresses" | "settings";
 
+type Address = {
+  id: string;
+  userId: string;
+  fullName: string;
+  street: string;
+  city: string;
+  state: string;
+  postalCode: string;
+  country: string;
+};
+
+type OrderItem = {
+  id: string;
+  artworkId: string;
+  size: string;
+  price: number;
+  artwork?: {
+    id: string;
+    title: string;
+    imageUrl: string;
+  } | null;
+};
+
+type Order = {
+  id: string;
+  totalAmount: number;
+  paymentStatus: string;
+  fulfillmentStatus: string;
+  createdAt: Date;
+  items: OrderItem[];
+};
+
 export default function AccountPage() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<Tab>("orders");
   
-  // Address State
-  const [addresses, setAddresses] = useState<any[]>([]);
+  // Orders & Address State
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [addresses, setAddresses] = useState<Address[]>([]);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
 
   const router = useRouter();
@@ -28,9 +63,12 @@ export default function AccountPage() {
         router.push("/login");
       } else {
         setUser(session.user);
-        // Fetch addresses from Prisma via Server Action
-        const userAddresses = await getUserAddresses(session.user.id);
+        const [userAddresses, userOrders] = await Promise.all([
+          getUserAddresses(session.user.id),
+          session.user.email ? getUserOrders(session.user.email) : Promise.resolve([]),
+        ]);
         setAddresses(userAddresses);
+        setOrders(userOrders as unknown as Order[]);
       }
       setLoading(false);
     };
@@ -40,6 +78,7 @@ export default function AccountPage() {
 
   const handleAddressSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (!user) return;
     const formData = new FormData(e.currentTarget);
     await saveAddress(formData, user.id);
     
@@ -70,13 +109,13 @@ export default function AccountPage() {
       <div className="grid grid-cols-1 md:grid-cols-4 gap-10">
         {/* Navigation Sidebar */}
         <div className="flex flex-col gap-6 md:col-span-1">
-          <button onClick={() => setActiveTab("orders")} className={`text-left text-xs uppercase tracking-[0.2em] font-bold transition-colors ${activeTab === "orders" ? "text-[#C5A059]" : "text-[#121110]/60 hover:text-[#0B2545]"}`}>
-            Order History
+          <button onClick={() => setActiveTab("orders")} className={`text-left text-xs uppercase tracking-[0.2em] font-bold transition-colors cursor-pointer ${activeTab === "orders" ? "text-[#C5A059]" : "text-[#121110]/60 hover:text-[#0B2545]"}`}>
+            Order History {orders.length > 0 && `(${orders.length})`}
           </button>
-          <button onClick={() => setActiveTab("addresses")} className={`text-left text-xs uppercase tracking-[0.2em] font-bold transition-colors ${activeTab === "addresses" ? "text-[#C5A059]" : "text-[#121110]/60 hover:text-[#0B2545]"}`}>
+          <button onClick={() => setActiveTab("addresses")} className={`text-left text-xs uppercase tracking-[0.2em] font-bold transition-colors cursor-pointer ${activeTab === "addresses" ? "text-[#C5A059]" : "text-[#121110]/60 hover:text-[#0B2545]"}`}>
             Saved Addresses
           </button>
-          <button onClick={() => setActiveTab("settings")} className={`text-left text-xs uppercase tracking-[0.2em] font-bold transition-colors ${activeTab === "settings" ? "text-[#C5A059]" : "text-[#121110]/60 hover:text-[#0B2545]"}`}>
+          <button onClick={() => setActiveTab("settings")} className={`text-left text-xs uppercase tracking-[0.2em] font-bold transition-colors cursor-pointer ${activeTab === "settings" ? "text-[#C5A059]" : "text-[#121110]/60 hover:text-[#0B2545]"}`}>
             Account Settings
           </button>
         </div>
@@ -86,15 +125,69 @@ export default function AccountPage() {
           
           {/* TAB: Orders */}
           {activeTab === "orders" && (
-            <div className="flex flex-col items-center justify-center text-center h-full pt-10">
-              <span className="text-5xl mb-6 text-[#C5A059]/30">⚱️</span>
-              <h3 className="font-serif text-2xl text-[#121110] mb-3">No Recent Orders</h3>
-              <p className="text-sm font-light text-[#121110]/60 mb-8 max-w-sm">
-                You haven't acquired any pieces from the studio yet.
-              </p>
-              <Link href="/" className="bg-[#0B2545] text-white px-8 py-3.5 text-[10px] uppercase tracking-[0.2em] font-bold rounded-sm hover:bg-[#C5A059] transition-colors duration-300 shadow-sm">
-                Explore Gallery
-              </Link>
+            <div>
+              {orders.length === 0 ? (
+                <div className="flex flex-col items-center justify-center text-center h-full pt-10">
+                  <span className="text-5xl mb-6 text-[#C5A059]/30">⚱️</span>
+                  <h3 className="font-serif text-2xl text-[#121110] mb-3">No Recent Orders</h3>
+                  <p className="text-sm font-light text-[#121110]/60 mb-8 max-w-sm">
+                    You haven&apos;t acquired any pieces from the studio yet.
+                  </p>
+                  <Link href="/" className="bg-[#0B2545] text-white px-8 py-3.5 text-[10px] uppercase tracking-[0.2em] font-bold rounded-sm hover:bg-[#C5A059] transition-colors duration-300 shadow-sm">
+                    Explore Gallery
+                  </Link>
+                </div>
+              ) : (
+                <div className="space-y-6">
+                  <h3 className="font-serif text-2xl text-[#121110] mb-6">Acquisition History</h3>
+                  {orders.map((ord) => (
+                    <div key={ord.id} className="border border-[#C5A059]/20 p-6 rounded-sm bg-[#FBF9F5]/30 space-y-4">
+                      <div className="flex flex-wrap justify-between items-center border-b border-[#C5A059]/15 pb-3 gap-2">
+                        <div>
+                          <p className="text-[10px] uppercase tracking-widest font-bold text-[#C5A059]">
+                            Order #{ord.id.slice(0, 8).toUpperCase()}
+                          </p>
+                          <p className="text-xs text-[#121110]/50 font-light mt-0.5">
+                            {new Date(ord.createdAt).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" })}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className={`text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-sm ${ord.paymentStatus === "PAID" ? "bg-green-100 text-green-800" : "bg-amber-100 text-amber-800"}`}>
+                            {ord.paymentStatus.replace("_", " ")}
+                          </span>
+                          <span className="text-[10px] uppercase tracking-widest font-bold px-2.5 py-1 rounded-sm bg-stone-100 text-stone-700">
+                            {ord.fulfillmentStatus.replace("_", " ")}
+                          </span>
+                        </div>
+                      </div>
+
+                      <div className="space-y-3">
+                        {ord.items.map((item) => (
+                          <div key={item.id} className="flex items-center justify-between text-sm">
+                            <div className="flex items-center gap-3">
+                              {item.artwork?.imageUrl && (
+                                <div className="relative w-12 h-14 bg-stone-100 rounded-sm overflow-hidden border border-[#C5A059]/20">
+                                  <Image src={item.artwork.imageUrl} alt={item.artwork.title || "Artwork"} fill className="object-cover" sizes="48px" />
+                                </div>
+                              )}
+                              <div>
+                                <p className="font-medium text-[#121110]">{item.artwork?.title || "Artwork"}</p>
+                                <p className="text-xs text-[#121110]/50">Size: {item.size}</p>
+                              </div>
+                            </div>
+                            <span className="font-medium text-[#121110]">₹{item.price.toLocaleString("en-IN")}</span>
+                          </div>
+                        ))}
+                      </div>
+
+                      <div className="border-t border-[#C5A059]/15 pt-3 flex justify-between items-center text-sm">
+                        <span className="text-xs uppercase tracking-widest font-bold text-[#121110]/60">Total</span>
+                        <span className="text-lg font-light text-[#121110]">₹{ord.totalAmount.toLocaleString("en-IN")}</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )}
 

@@ -37,6 +37,7 @@ export default function AboutPage() {
             src="https://images.unsplash.com/photo-1513364776144-60967b0f800f?q=80&w=1000&auto=format&fit=crop" 
             alt="The Artist in Studio" 
             fill 
+            sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover"
             priority
           />
@@ -86,6 +87,7 @@ export default function AboutPage() {
             src="https://images.unsplash.com/photo-1460661419201-fd4cecdf8a8b?q=80&w=1000&auto=format&fit=crop" 
             alt="Artistic Process" 
             fill 
+            sizes="(max-width: 768px) 100vw, 50vw"
             className="object-cover"
           />
         </div>

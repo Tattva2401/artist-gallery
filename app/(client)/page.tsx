@@ -10,7 +10,7 @@ export default async function HomePage() {
       {/* Hero Section */}
       <section className="text-center max-w-3xl mx-auto mb-20">
         <p className="text-xs uppercase tracking-[0.3em] text-gold-antique font-semibold mb-4">
-          demo text
+          Contemporary Originals & Archival Prints
         </p>
         
         {/* RESPONSIVE H1: text-4xl on mobile to prevent wrapping, text-6xl on desktop */}
@@ -19,7 +19,7 @@ export default async function HomePage() {
         </h1>
         
         <p className="text-obsidian/70 font-light text-lg md:text-xl leading-relaxed">
-          demo text
+          Original contemporary artworks and limited-edition prints by Kavita Rajput. Handcrafted with rich textures, evocative palettes, and timeless vision.
         </p>
       </section>
 

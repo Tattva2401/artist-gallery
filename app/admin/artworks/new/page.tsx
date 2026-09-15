@@ -3,7 +3,7 @@
 import { publishArtwork } from "./actions";
 import Link from "next/link";
 import { useState } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 
 export default function NewArtworkPage() {
   const [uploading, setUploading] = useState(false);
@@ -11,10 +11,7 @@ export default function NewArtworkPage() {
   // Dynamic state to hold multiple sizes/variants
   const [variants, setVariants] = useState([{ size: "Original", price: "", stock: "1" }]);
 
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = getSupabaseBrowserClient();
 
   // Helper functions for the dynamic variants builder
   const handleVariantChange = (index: number, field: string, value: string) => {

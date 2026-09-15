@@ -37,8 +37,8 @@ export default function ArtworkClient({ artwork }: { artwork: any }) {
         customerEmail,
         customerPhone,
         shippingAddress,
-        agreedToTerms,
-        agreedToNonCopy,
+        agreedToTerms: agreedTerms,
+        agreedToNonCopy: agreedNoCopy,
         agreedToNoRemake: true,
       });
 

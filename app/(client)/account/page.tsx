@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { createBrowserClient } from "@supabase/ssr";
+import { getSupabaseBrowserClient } from "@/lib/supabase-browser";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { saveAddress, getUserAddresses } from "@/app/actions/address";
@@ -18,10 +18,7 @@ export default function AccountPage() {
   const [isAddingAddress, setIsAddingAddress] = useState(false);
 
   const router = useRouter();
-  const supabase = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabase = getSupabaseBrowserClient();
 
   useEffect(() => {
     const fetchUserData = async () => {

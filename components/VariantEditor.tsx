@@ -15,16 +15,18 @@ export default function VariantEditor({ artworkId, variants }: { artworkId: stri
 
   const handleDelete = (variantId: string) => {
     if (window.confirm("Are you sure you want to delete this size?")) {
-      startTransition(() => {
-        deleteVariant(variantId, artworkId);
+      startTransition(async () => {
+        await deleteVariant(variantId, artworkId);
       });
     }
   };
 
   const handleAdd = (formData: FormData) => {
-    startTransition(() => {
-      addVariant(artworkId, formData);
-      formRef.current?.reset(); // Clear inputs after adding
+    startTransition(async () => {
+      const res = await addVariant(artworkId, formData);
+      if (!res?.error) {
+        formRef.current?.reset(); // Clear inputs only after successful addition
+      }
     });
   };
 

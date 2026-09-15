@@ -28,7 +28,15 @@ export default async function proxy(request: NextRequest) {
 
   // THE BRICK WALL: Protect all /admin routes except the login page itself
   if (request.nextUrl.pathname.startsWith('/admin') && !request.nextUrl.pathname.startsWith('/admin/login')) {
-    if (!user) {
+    const adminEmail = process.env.ADMIN_EMAIL
+    const isAdmin = user && (
+      (adminEmail && user.email === adminEmail) || 
+      user.user_metadata?.role === 'admin' ||
+      user.app_metadata?.role === 'admin' ||
+      (!adminEmail && user) // Safe fallback during initial setup if ADMIN_EMAIL is not yet set
+    )
+
+    if (!isAdmin) {
       const url = request.nextUrl.clone()
       url.pathname = '/admin/login'
       return NextResponse.redirect(url)

@@ -3,6 +3,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import Link from "next/link";
 import VariantEditor from "@/components/VariantEditor"; // <-- Added import
+import { verifyAdmin } from "@/lib/auth";
 
 export default async function EditArtworkPage({ params }: { params: Promise<{ id: string }> }) {
   // 1. Await the params Promise to safely extract the ID
@@ -23,6 +24,7 @@ export default async function EditArtworkPage({ params }: { params: Promise<{ id
   // 3. Secure Server Action to handle the main update
   async function updateArtwork(formData: FormData) {
     "use server";
+    await verifyAdmin();
     
     const title = formData.get("title") as string;
     const description = formData.get("description") as string;

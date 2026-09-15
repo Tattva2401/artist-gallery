@@ -1,10 +1,12 @@
 "use server";
 
-// FIX: Removed the curly braces around prisma to match your default export
 import prisma from "@/lib/db"; 
 import { revalidatePath } from "next/cache";
+import { verifyAdmin } from "@/lib/auth";
 
 export async function addVariant(artworkId: string, formData: FormData) {
+  await verifyAdmin();
+
   const size = formData.get("size") as string;
   const price = parseFloat(formData.get("price") as string);
 
@@ -18,14 +20,20 @@ export async function addVariant(artworkId: string, formData: FormData) {
     },
   });
 
-  // Refreshes the page data instantly
+  // Refreshes the page data instantly across admin and public gallery
   revalidatePath(`/admin/artworks/${artworkId}`);
+  revalidatePath(`/artwork/${artworkId}`);
+  revalidatePath("/");
 }
 
 export async function deleteVariant(variantId: string, artworkId: string) {
+  await verifyAdmin();
+
   await prisma.printVariant.delete({
     where: { id: variantId },
   });
 
   revalidatePath(`/admin/artworks/${artworkId}`);
+  revalidatePath(`/artwork/${artworkId}`);
+  revalidatePath("/");
 }

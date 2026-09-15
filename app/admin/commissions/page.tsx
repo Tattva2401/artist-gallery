@@ -1,78 +1,95 @@
 import prisma from "@/lib/db";
-import Link from "next/link";
+import { revalidatePath } from "next/cache";
+import { verifyAdmin } from "@/lib/auth";
 
-export default async function AdminCommissionsPage() {
+export default async function CommissionsAdminPage() {
   // Fetch all commissions, newest first
   const commissions = await prisma.commission.findMany({
-    orderBy: { createdAt: 'desc' }
+    orderBy: { createdAt: "desc" },
   });
 
-  return (
-    <div className="max-w-6xl mx-auto">
-      <header className="flex justify-between items-end mb-10">
-        <div>
-          <h1 className="text-3xl font-serif text-white mb-2">Commission Requests</h1>
-          <p className="text-stone-400 font-light text-sm">Review and manage incoming client projects.</p>
-        </div>
-      </header>
+  // Server Action to update the status of a specific request
+  async function updateStatus(formData: FormData) {
+    "use server";
+    await verifyAdmin();
+    const id = formData.get("id") as string;
+    const status = formData.get("status") as string;
 
-      <div className="bg-stone-900 border border-stone-800 rounded-sm overflow-hidden">
-        <table className="w-full text-left text-sm text-stone-400">
-          <thead className="bg-stone-950 text-stone-500 uppercase tracking-widest text-xs font-semibold border-b border-stone-800">
-            <tr>
-              <th className="px-6 py-4">Client</th>
-              <th className="px-6 py-4">Details</th>
-              <th className="px-6 py-4">Status</th>
-              <th className="px-6 py-4">Date</th>
-              <th className="px-6 py-4 text-right">Actions</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-stone-800">
-            {commissions.map((req) => (
-              <tr key={req.id} className="hover:bg-stone-800/50 transition-colors">
-                <td className="px-6 py-4">
-                  <p className="text-white font-medium text-base">{req.name}</p>
-                  <a href={`mailto:${req.email}`} className="text-xs text-stone-500 hover:text-stone-300 transition-colors">
+    await prisma.commission.update({
+      where: { id },
+      data: { status },
+    });
+
+    revalidatePath("/admin/commissions");
+  }
+
+  return (
+    <div className="p-8 md:p-12 max-w-6xl mx-auto">
+      <div className="mb-10">
+        <h1 className="font-serif text-3xl text-[#FBF9F5] mb-2">Commissions Inbox</h1>
+        <p className="text-xs uppercase tracking-widest text-[#FBF9F5]/50">
+          Manage custom artwork requests
+        </p>
+      </div>
+
+      <div className="grid gap-6">
+        {commissions.length === 0 ? (
+          <p className="text-stone-500">No commission requests yet.</p>
+        ) : (
+          commissions.map((req) => (
+            <div key={req.id} className="bg-[#121110] border border-[#C5A059]/30 p-6 rounded-sm flex flex-col md:flex-row gap-6 justify-between items-start">
+              
+              {/* Details Section */}
+              <div className="space-y-4 flex-1">
+                <div>
+                  <h3 className="text-xl text-[#FBF9F5] font-serif">{req.name}</h3>
+                  <a href={`mailto:${req.email}`} className="text-xs text-[#C5A059] hover:underline">
                     {req.email}
                   </a>
-                </td>
-                <td className="px-6 py-4 max-w-xs">
-                  <p className="text-white font-medium mb-1">Size: {req.requestedSize || 'Not specified'}</p>
-                  <p className="text-xs line-clamp-2">{req.details}</p>
-                </td>
-                <td className="px-6 py-4">
-                  <span className={`px-2.5 py-1 rounded-full text-xs font-medium ${
-                    req.status === 'PENDING' ? 'bg-yellow-900/50 text-yellow-500' :
-                    req.status === 'ACCEPTED' ? 'bg-green-900/50 text-green-500' :
-                    'bg-red-900/50 text-red-500'
-                  }`}>
-                    {req.status}
-                  </span>
-                </td>
-                <td className="px-6 py-4">
-                  {new Date(req.createdAt).toLocaleDateString()}
-                </td>
-                <td className="px-6 py-4 text-right space-x-4">
-                  {/* These buttons will be wired up to Server Actions in the next step */}
-                  <button className="text-green-400 hover:text-green-300 transition-colors uppercase tracking-widest text-xs font-semibold">
-                    Accept
+                </div>
+                
+                <div className="bg-stone-900/50 p-4 rounded-sm border border-stone-800 space-y-3">
+                  {req.requestedSize && (
+                    <p className="text-sm text-[#C5A059] font-medium border-b border-stone-800 pb-2">
+                      Requested Size: {req.requestedSize}
+                    </p>
+                  )}
+                  <p className="text-sm text-stone-300 whitespace-pre-wrap">{req.details}</p>
+                </div>
+                
+                <p className="text-[10px] text-stone-500 uppercase tracking-widest">
+                  Received: {new Date(req.createdAt).toLocaleDateString()}
+                </p>
+              </div>
+
+              {/* Status Management Section */}
+              <div className="bg-stone-900 p-4 rounded-sm border border-stone-800 w-full md:w-64 shrink-0">
+                <p className="text-[10px] uppercase tracking-widest font-bold text-stone-400 mb-3">Current Status</p>
+                
+                <form action={updateStatus} className="flex flex-col gap-3">
+                  <input type="hidden" name="id" value={req.id} />
+                  <select 
+                    name="status" 
+                    defaultValue={req.status}
+                    className="bg-[#121110] border border-stone-700 text-[#FBF9F5] p-2 text-sm rounded-sm focus:outline-none focus:border-[#C5A059]"
+                  >
+                    {/* Options perfectly match your schema defaults */}
+                    <option value="PENDING">Pending</option>
+                    <option value="ACCEPTED">Accepted</option>
+                    <option value="DECLINED">Declined</option>
+                  </select>
+                  <button 
+                    type="submit"
+                    className="w-full bg-[#C5A059] text-[#121110] py-2 text-[10px] uppercase tracking-widest font-bold rounded-sm hover:bg-[#FBF9F5] transition-colors"
+                  >
+                    Update Status
                   </button>
-                  <button className="text-red-400 hover:text-red-300 transition-colors uppercase tracking-widest text-xs font-semibold">
-                    Decline
-                  </button>
-                </td>
-              </tr>
-            ))}
-            
-            {commissions.length === 0 && (
-              <tr>
-                <td colSpan={5} className="px-6 py-12 text-center text-stone-500">
-                  No commission requests found.
-                </td>
-              </tr>
-            )}
-          </tbody>
-        </table>
+                </form>
+              </div>
+
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

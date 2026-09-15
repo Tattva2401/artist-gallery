@@ -2,11 +2,11 @@ import prisma from "@/lib/db";
 import Link from "next/link";
 
 export default async function AdminDashboard() {
-  // Fetch real-time counts from your database
-  const artworksCount = await prisma.artwork.count();
+  // Fetch real-time counts from database with resilient fallbacks
+  const artworksCount = await prisma.artwork.count().catch(() => 0);
   const commissionsCount = await prisma.commission.count({
     where: { status: 'PENDING' }
-  });
+  }).catch(() => 0);
 
   return (
     <div className="max-w-4xl">

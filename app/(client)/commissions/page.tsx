@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { submitCommissionRequest } from './actions';
+import { submitCommission } from './actions';
 
 export default function CommissionsPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -15,8 +15,13 @@ export default function CommissionsPage() {
     try {
       // Package up the form data and send it to our secure server action
       const formData = new FormData(e.currentTarget);
-      await submitCommissionRequest(formData);
+      const result = await submitCommission(formData);
       
+      if (result?.error) {
+        alert(result.error);
+        return;
+      }
+
       // If no errors were thrown, show the success screen!
       setIsSuccess(true);
     } catch (error) {
@@ -77,13 +82,13 @@ export default function CommissionsPage() {
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="size" className="text-xs font-bold uppercase tracking-widest text-stone-500">Desired Dimensions</label>
-            <input required type="text" id="size" name="size" className="w-full border-b border-stone-300 py-2 bg-transparent focus:outline-none focus:border-stone-800 transition-colors placeholder:font-light" placeholder="e.g., 24x36 inches, Large Canvas" />
+            <label htmlFor="requestedSize" className="text-xs font-bold uppercase tracking-widest text-stone-500">Desired Dimensions</label>
+            <input required type="text" id="requestedSize" name="requestedSize" className="w-full border-b border-stone-300 py-2 bg-transparent focus:outline-none focus:border-stone-800 transition-colors placeholder:font-light" placeholder="e.g., 24x36 inches, Large Canvas" />
           </div>
 
           <div className="space-y-2">
-            <label htmlFor="concept" className="text-xs font-bold uppercase tracking-widest text-stone-500">Artwork Concept & Details</label>
-            <textarea required id="concept" name="concept" rows={5} className="w-full border border-stone-300 p-4 bg-transparent focus:outline-none focus:border-stone-800 transition-colors font-light placeholder:font-light resize-none" placeholder="Describe the color palette, mood, and any specific elements you want included..."></textarea>
+            <label htmlFor="details" className="text-xs font-bold uppercase tracking-widest text-stone-500">Artwork Concept & Details</label>
+            <textarea required id="details" name="details" rows={5} className="w-full border border-stone-300 p-4 bg-transparent focus:outline-none focus:border-stone-800 transition-colors font-light placeholder:font-light resize-none" placeholder="Describe the color palette, mood, and any specific elements you want included..."></textarea>
           </div>
 
           <button 

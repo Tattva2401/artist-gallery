@@ -2,27 +2,39 @@ import prisma from "@/lib/db";
 import Link from "next/link";
 import Image from "next/image";
 import { revalidatePath } from "next/cache";
+import { verifyAdmin } from "@/lib/auth";
 
 // Secure inline Server Action to handle the deletion
 async function deleteArtwork(formData: FormData) {
   "use server";
+  await verifyAdmin();
   const id = formData.get("id") as string;
   
   if (id) {
-    // Delete the record from the database
-    await prisma.artwork.delete({ where: { id } });
+    try {
+      // Delete the record from the database
+      await prisma.artwork.delete({ where: { id } });
+    } catch (error) {
+      // If referenced by existing customer order items, safely archive rather than crash
+      console.error("Could not hard-delete artwork (order history exists), archiving:", error);
+      await prisma.artwork.update({
+        where: { id },
+        data: { isAvailable: false },
+      }).catch((e) => console.error("Archive fallback failed:", e));
+    }
     
-    // Tell Next.js to refresh both the admin panel and the live gallery
+    // Tell Next.js to refresh both the admin panel, live gallery, and deleted artwork page
     revalidatePath("/admin/artworks");
+    revalidatePath(`/artwork/${id}`);
     revalidatePath("/");
   }
 }
 
 export default async function ManageArtworksPage() {
-  // Fetch all artworks directly from Prisma
+  // Fetch all artworks directly from Prisma with resilient fallback
   const artworks = await prisma.artwork.findMany({
     orderBy: { createdAt: "desc" },
-  });
+  }).catch(() => []);
 
   return (
     <div className="p-8 md:p-12">
@@ -42,8 +54,8 @@ export default async function ManageArtworksPage() {
       </div>
 
       {/* Artworks Table */}
-      <div className="bg-[#121110] border border-stone-800 rounded-sm overflow-hidden">
-        <table className="w-full text-left border-collapse">
+      <div className="bg-[#121110] border border-stone-800 rounded-sm overflow-x-auto">
+        <table className="w-full text-left border-collapse min-w-[600px]">
           <thead>
             <tr className="border-b border-stone-800 text-[10px] uppercase tracking-widest text-stone-400 bg-stone-900/30">
               <th className="p-6 font-medium">Artwork</th>

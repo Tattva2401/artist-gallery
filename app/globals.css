@@ -1,5 +1,15 @@
 @import "tailwindcss";
 
+@theme {
+  --color-cream: #FBF9F5;
+  --color-obsidian: #121110;
+  --color-gold-antique: #C5A059;
+  --color-gold-light: #E5C98B;
+  --color-sapphire-peacock: #0B2545;
+  --color-emerald-crest: #0D5C3A;
+  --color-ruby-royal: #8B1E2D;
+}
+
 @layer base {
   :root {
     --bg-cream: #FBF9F5;

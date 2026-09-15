@@ -3,6 +3,7 @@
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { verifyAdmin } from "@/lib/auth";
 
 export async function publishArtwork(data: { 
   title: string; 
@@ -12,6 +13,7 @@ export async function publishArtwork(data: {
   category: string;
   variants: { size: string; price: number; stock: number }[];
 }) {
+  await verifyAdmin();
   // 1. Tell Prisma to create a new row in the Artwork table
   await prisma.artwork.create({
     data: {
